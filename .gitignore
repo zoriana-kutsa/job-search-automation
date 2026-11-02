@@ -218,3 +218,9 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+# Secrets: never upload to GitHub
+.env
+credentials.json
+token.json
+service_account.json
+*.json.key
