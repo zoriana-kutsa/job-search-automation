@@ -1,11 +1,12 @@
+import json
 import os
 from datetime import date
 
 import gspread
 from dotenv import load_dotenv
 
-from gmail_reader import get_gmail_service
-from job_scorer import get_body, score_email
+from imap_reader import fetch_email_texts
+from job_scorer import score_email
 
 load_dotenv()
 
@@ -20,19 +21,17 @@ def detect_source(url):
 
 
 def main():
-    gc = gspread.service_account(filename="service_account.json")
+        sa_json = os.getenv("GOOGLE_SERVICE_ACCOUNT_JSON")
+    if sa_json:
+        gc = gspread.service_account_from_dict(json.loads(sa_json))
+    else:
+        gc = gspread.service_account(filename="service_account.json")
     ws = gc.open_by_key(os.getenv("SPREADSHEET_ID")).sheet1
     existing = {u.split("?")[0] for u in ws.col_values(8)[1:]}
 
-    service = get_gmail_service()
-    messages = service.users().messages().list(
-        userId="me", q="newer_than:4d", maxResults=20
-    ).execute().get("messages", [])
-
     new_rows = []
-    for m in messages:
-        msg = service.users().messages().get(userId="me", id=m["id"], format="full").execute()
-        for v in score_email(get_body(msg["payload"])):
+    for text in fetch_email_texts(days=4):
+        for v in score_email(text):
             url = v.get("url", "")
             key = url.split("?")[0]
             try:
