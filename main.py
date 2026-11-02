@@ -21,7 +21,7 @@ def detect_source(url):
 
 
 def main():
-        sa_json = os.getenv("GOOGLE_SERVICE_ACCOUNT_JSON")
+    sa_json = os.getenv("GOOGLE_SERVICE_ACCOUNT_JSON")
     if sa_json:
         gc = gspread.service_account_from_dict(json.loads(sa_json))
     else:
