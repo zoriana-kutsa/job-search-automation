@@ -33,11 +33,11 @@ def fetch_email_texts(days=4, limit=20):
     since = f"{d.day:02d}-{MONTHS[d.month - 1]}-{d.year}"
     mail = imaplib.IMAP4_SSL("imap.gmail.com")
     mail.login(os.getenv("GMAIL_ADDRESS"), os.getenv("GMAIL_APP_PASSWORD"))
-    mail.select("INBOX")
+    mail.select("INBOX", readonly=True)
     _, data = mail.search(None, f'(SINCE "{since}")')
     texts = []
     for num in data[0].split()[-limit:]:
-        _, msg_data = mail.fetch(num, "(RFC822)")
+        _, msg_data = mail.fetch(num, "(BODY.PEEK[])")
         msg = email.message_from_bytes(msg_data[0][1])
         texts.append(get_text(msg))
     mail.logout()
