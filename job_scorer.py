@@ -38,7 +38,8 @@ def get_body(payload):
 
 
 def score_email(text):
-    for attempt in range(3):
+    time.sleep(4)
+    for attempt in range(4):
         try:
             response = client.models.generate_content(
                 model="gemini-flash-lite-latest",
@@ -46,13 +47,13 @@ def score_email(text):
                 config=types.GenerateContentConfig(
                     response_mime_type="application/json",
                     max_output_tokens=8192,
-                    temperature=0
+                    temperature=0.2,
                 ),
             )
             return json.loads(response.text)
         except Exception as e:
-            print(f"Attempt {attempt + 1} failed: {type(e).__name__}")
-            time.sleep(10)
+            print(f"Attempt {attempt + 1} failed: {type(e).__name__}: {str(e)[:300]}")
+            time.sleep(15 * (attempt + 1))
     return []
 
 
