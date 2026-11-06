@@ -11,7 +11,7 @@ from job_scorer import score_email
 
 load_dotenv()
 
-MIN_SCORE = 6
+MIN_SCORE = 7
 
 
 def detect_source(url):
@@ -21,13 +21,14 @@ def detect_source(url):
     return "other"
 
 
-def append_with_retry(ws, rows):
+def write_rows(ws, rows):
     for attempt in range(3):
         try:
-             ws.append_rows(
-                rows,
+            next_row = len(ws.get_all_values()) + 1
+            ws.update(
+                values=rows,
+                range_name=f"A{next_row}",
                 value_input_option="USER_ENTERED",
-                insert_data_option="INSERT_ROWS",
             )
             return True
         except Exception as e:
@@ -64,7 +65,7 @@ def main():
                 v.get("location", ""), score, v.get("fit", ""), v.get("reason", ""),
                 url, detect_source(url), "Нова",
             ])
-        if rows and append_with_retry(ws, rows):
+        if rows and write_rows(ws, rows):
             added += len(rows)
     print(f"Added {added} new vacancies")
 
