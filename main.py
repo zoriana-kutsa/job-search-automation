@@ -24,7 +24,11 @@ def detect_source(url):
 def append_with_retry(ws, rows):
     for attempt in range(3):
         try:
-            ws.append_rows(rows, value_input_option="USER_ENTERED")
+             ws.append_rows(
+                rows,
+                value_input_option="USER_ENTERED",
+                insert_data_option="INSERT_ROWS",
+            )
             return True
         except Exception as e:
             print(f"Sheets write attempt {attempt + 1} failed: {type(e).__name__}")
