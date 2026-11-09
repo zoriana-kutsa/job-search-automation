@@ -2,7 +2,7 @@ name: Job search
 
 on:
   schedule:
-    - cron: "0 7 * * 1,3,5"
+    - cron: "17 9 * * 1,3,5"
   workflow_dispatch:
 
 jobs:
