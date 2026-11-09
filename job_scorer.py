@@ -9,6 +9,7 @@ load_dotenv()
 client = genai.Client()
 
 MODELS = ["gemini-flash-latest", "gemini-flash-lite-latest"]
+EXHAUSTED = set()
 
 PROMPT = """You evaluate job vacancies for a candidate. Candidate skills: SQL, Power BI,
 Excel, Python/pandas, AI, proofreading. Languages: Polish and Ukrainian.
@@ -26,8 +27,12 @@ EMAIL:
 
 def score_email(text):
     time.sleep(4)
-    for attempt in range(4):
-        model = MODELS[attempt % len(MODELS)]
+    for attempt in range(6):
+        models = [m for m in MODELS if m not in EXHAUSTED]
+        if not models:
+            print("All Gemini models are out of quota. Stopping.")
+            raise SystemExit(1)
+        model = models[attempt % len(models)]
         try:
             response = client.models.generate_content(
                 model=model,
@@ -40,8 +45,10 @@ def score_email(text):
             )
             return json.loads(response.text)
         except Exception as e:
-            print(f"Attempt {attempt + 1} ({model}) failed: {type(e).__name__}: {str(e)[:120]}")
-            if "NOT_FOUND" in str(e):
+            msg = str(e)
+            print(f"Attempt {attempt + 1} ({model}) failed: {type(e).__name__}: {msg[:120]}")
+            if "RESOURCE_EXHAUSTED" in msg or "NOT_FOUND" in msg:
+                EXHAUSTED.add(model)
                 continue
             time.sleep(15 * (attempt + 1))
     return []
