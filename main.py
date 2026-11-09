@@ -20,6 +20,11 @@ def detect_source(url):
             return name
     return "other"
 
+def is_suitable(v):
+    location = str(v.get("location", "")).lower()
+    in_warsaw = "warszaw" in location or "warsaw" in location
+    b2b_only = v.get("b2b_only") is True
+    return in_warsaw and not b2b_only
 
 def write_rows(ws, rows):
     for attempt in range(3):
@@ -57,7 +62,7 @@ def main():
                 score = float(v.get("score", 0))
             except (TypeError, ValueError):
                 score = 0
-            if score < MIN_SCORE or not url or key in existing:
+            if score < MIN_SCORE or not url or key in existing or not is_suitable(v):
                 continue
             existing.add(key)
             rows.append([
