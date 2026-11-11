@@ -8,8 +8,8 @@ from google.genai import types
 load_dotenv()
 client = genai.Client()
 
-MODELS = ["gemini-flash-latest", "gemini-flash-lite-latest"]
-EXHAUSTED = set()
+MODELS = ["gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemini-3.5-flash"]
+UNAVAILABLE = set()
 
 PROMPT = """You evaluate job vacancies for a candidate. Candidate skills: SQL, Power BI,
 Excel, Python/pandas, AI, proofreading. Languages: Polish and Ukrainian.
@@ -28,9 +28,9 @@ EMAIL:
 def score_email(text):
     time.sleep(4)
     for attempt in range(6):
-        models = [m for m in MODELS if m not in EXHAUSTED]
+        models = [m for m in MODELS if m not in UNAVAILABLE]
         if not models:
-            print("All Gemini models are out of quota. Stopping.")
+            print("All Gemini models are unavailable (quota or model not found). Stopping.")
             raise SystemExit(1)
         model = models[attempt % len(models)]
         try:
@@ -48,7 +48,7 @@ def score_email(text):
             msg = str(e)
             print(f"Attempt {attempt + 1} ({model}) failed: {type(e).__name__}: {msg[:120]}")
             if "RESOURCE_EXHAUSTED" in msg or "NOT_FOUND" in msg:
-                EXHAUSTED.add(model)
+                UNAVAILABLE.add(model)
                 continue
             time.sleep(15 * (attempt + 1))
     return []
